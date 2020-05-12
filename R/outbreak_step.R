@@ -41,12 +41,12 @@
 #' presymrate = 0.4, R = 6.5, quarantine = TRUE, isolation = TRUE, tracing = TRUE, secondary = TRUE, sensitivity = "high", outside = 0.001, testing = "none")
 #' }
 
-outbreak_step <- function(day = NULL, case_data = NULL, net = NULL,
-                          prop.asym = NULL, incfn = NULL, delayfn = NULL,
-                          prop.ascertain = NULL, presymrate = NULL, R = NULL, quarantine = NULL,
-                          isolation = NULL, tracing = NULL,
-                          secondary = NULL, outside = NULL,
-                          sensitivity = NULL, testing = NULL,
+outbreak_step <- function(day, case_data, net = haslemere,
+                          prop.asym, incfn, delayfn,
+                          prop.ascertain, presymrate, R, quarantine,
+                          isolation, tracing,
+                          secondary, outside,
+                          sensitivity = "high", testing = "none",
                           cap_max_tests = NULL) {
 
 

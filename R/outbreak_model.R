@@ -24,16 +24,16 @@
 #' outside = 0.001, sensitivity = "high", testing = "none"}
 #'
 #'
-outbreak_model <- function(net = NULL,
-                           num.initial.cases = NULL,
-                           prop.ascertain = NULL,
-                           cap_max_days = NULL,
-                           R = NULL, presymrate = NULL, delay_shape = NULL,
-                           delay_scale = NULL, prop.asym = NULL,
-                           quarantine = NULL, isolation = NULL,
-                           tracing = NULL, secondary = NULL,
-                           outside = NULL, sensitivity = NULL,
-                           testing = NULL, cap_max_tests = NULL,
+outbreak_model <- function(net = haslemere,
+                           num.initial.cases,
+                           prop.ascertain,
+                           cap_max_days,
+                           R , presymrate, delay_shape,
+                           delay_scale, prop.asym,
+                           quarantine, isolation,
+                           tracing, secondary,
+                           outside, sensitivity = "high",
+                           testing = "none", cap_max_tests = NULL,
                            weekly = TRUE, s = NULL) {
 
   # Set up functions to sample from distributions
