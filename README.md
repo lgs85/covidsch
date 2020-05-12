@@ -23,7 +23,7 @@ devtools::install("covidhm", dependencies = TRUE) #or whatever your folder name 
 
 ### Run a single scenario
 
-Run a single scenario for a 50 simulations. Use `?scenario_sim` for an explanation of parameters.
+Run a single scenario for a 10 simulations. Use `?scenario_sim` for an explanation of parameters.
 
 ```r
 library(covidhm)
