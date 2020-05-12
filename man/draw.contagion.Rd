@@ -7,7 +7,7 @@
 draw.contagion(am, am.layout = NULL, use.df, day)
 }
 \arguments{
-\item{am}{association matrix network}
+\item{am}{association matrix}
 
 \item{am.layout}{(if wanting to specify a layout e.g. to keep the layout the same across comparisons)}
 

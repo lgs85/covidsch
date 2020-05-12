@@ -401,7 +401,7 @@ case_plot <- function(df,testing = FALSE, facet = "wrap", nrow = NULL,
 #' Generate network plot with contagion
 #'
 #' @author Josh Firth
-#' @param am association matrix network
+#' @param am association matrix
 #' @param use.df the dataframe information of the contagion
 #' @param day the day to do the contagion for
 #' @param am.layout (if wanting to specify a layout e.g. to keep the layout the same across comparisons)
@@ -586,7 +586,7 @@ draw.contagion<-function(am,am.layout=NULL,use.df,day){#takes the association ma
 #'
 #' @author Josh Firth
 #' @author Lewis Spurgin
-#' @param am association matrix network
+#' @param am association matrix
 #' @param day the day to do the contagion for
 #' @param am.layout (if wanting to specify a layout e.g. to keep the layout the same across comparisons)
 #' @inheritParams outbreak_model
