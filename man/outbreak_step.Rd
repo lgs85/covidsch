@@ -5,22 +5,22 @@
 \title{Infections on one day in the network model}
 \usage{
 outbreak_step(
-  day = NULL,
-  case_data = NULL,
-  net = NULL,
-  prop.asym = NULL,
-  incfn = NULL,
-  delayfn = NULL,
-  prop.ascertain = NULL,
-  presymrate = NULL,
-  R = NULL,
-  quarantine = NULL,
-  isolation = NULL,
-  tracing = NULL,
-  secondary = NULL,
-  outside = NULL,
-  sensitivity = NULL,
-  testing = NULL,
+  day,
+  case_data,
+  net = haslemere,
+  prop.asym,
+  incfn,
+  delayfn,
+  prop.ascertain,
+  presymrate,
+  R,
+  quarantine,
+  isolation,
+  tracing,
+  secondary,
+  outside,
+  sensitivity = "high",
+  testing = "none",
   cap_max_tests = NULL
 )
 }

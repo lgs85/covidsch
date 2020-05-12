@@ -5,20 +5,20 @@
 \title{Run a specified number of simulations with identical parameters}
 \usage{
 scenario_sim(
-  n.sim = NULL,
-  net = NULL,
-  prop.ascertain = NULL,
-  cap_max_days = NULL,
-  R = NULL,
-  presymrate = NULL,
-  delay_shape = NULL,
-  delay_scale = NULL,
-  num.initial.cases = NULL,
-  prop.asym = NULL,
-  scenario = NULL,
-  outside = NULL,
-  sensitivity = NULL,
-  testing = NULL,
+  n.sim = 1,
+  net = haslemere,
+  prop.ascertain,
+  cap_max_days,
+  R,
+  presymrate,
+  delay_shape,
+  delay_scale,
+  num.initial.cases,
+  prop.asym,
+  scenario,
+  outside,
+  sensitivity = "high",
+  testing = "none",
   cap_max_tests = NULL
 )
 }
