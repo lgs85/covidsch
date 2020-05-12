@@ -1,10 +1,8 @@
 # Assessment of contact tracing, social distancing, and real-world social tracking data for control of COVID-19 
 
-WORKING CODE WHICH MAY NOT RUN YET
+*Disclaimer: this is working code, which may change over time*
 
-This repository contains code for simulating COVID-19 dynamics in a range of scenarios across a real-world social network. The epidemic model is based conceptually on a branching-process model of contact-tracing and COVID-19, which can be accessed here:
-
-https://github.com/cmmid/ringbp
+This repository contains code for simulating COVID-19 dynamics in a range of scenarios across a real-world social network. The epidemic model is based conceptually on a branching-process model of contact-tracing and COVID-19, which can be accessed [here](https://github.com/cmmid/ringbp).
 
 
 
