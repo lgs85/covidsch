@@ -22,6 +22,8 @@ devtools::install("covidhm", dependencies = TRUE) #or whatever your folder name 
 
 ### Run a single scenario and plot a network
 
+Run a single instance of the outbreak model over 20 days and overlay the infection data onto a network. See `?plot_network` for details of parameters
+
 ```r
 library(covidhm)
 
