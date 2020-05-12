@@ -33,7 +33,35 @@ plot_network(
 
 \item{day}{the day to do the contagion for}
 
-\item{use.df}{the dataframe information of the contagion}
+\item{num.initial.cases}{integer number of initial cases}
+
+\item{prop.ascertain}{numeric proportion of infectious contacts ascertained by contact tracing (must be 0<=x<=1)}
+
+\item{R}{scaling factor for infection probability}
+
+\item{presymrate}{the proportion of cases with pre-onset transmission (must be 0<=x<=1)}
+
+\item{delay_shape}{numeric shape parameter of delay distribution}
+
+\item{delay_scale}{numeric scale parameter of delay distribution}
+
+\item{prop.asym}{proportion of asymptomtaic cases (must be 0<=x<=1)}
+
+\item{quarantine}{logical whether quarantine is in effect, if TRUE then traced contacts are isolated before symptom onset}
+
+\item{isolation}{logical whether isolation is in effect}
+
+\item{tracing}{logical whether tracing is in effect}
+
+\item{secondary}{logical whether secondary contact tracing is in effect}
+
+\item{sensitivity}{app sensitivity - "high" or "low"}
+
+\item{testing}{"realistic", "random" or "none"}
+
+\item{cap_max_tests}{integer - maximum number of tests}
+
+\item{s}{seed - optional for reproducing the same output. Useful for \code{plot_network()}}
 }
 \value{
 
@@ -45,20 +73,26 @@ Run an outbreak model and generate network plot with contagion
 
 \dontrun{
 
-#example of using function
-a<-load(file="/am_list.RData") #need this for a network
-b<-load(file="/network_examples.RData") #need this for contagion data
-
-
-#here, we're going to draw 2 networks, both of the same day (time period of the contagion) and both in the same layout (but  assuming you don't have a pre-specified layout) then just like this works:
-dev.new(height=6,width=12);par(mar=c(0,0,0,0));par(mai=c(0,0,0,0));par(mfrow=c(1,2))
-am<-am_list[[1]]
-#draw your first network and save the layout
-lay<-draw.contagion(am,use.df=primary_tracing,day=20)
-#now, if you want to use that same layout again for a different network you can just:
-draw.contagion(am,am.layout=lay,use.df=secondary_tracing,day=20)
+load("data-raw/am_list.RData")
+m <- am_list[[1]] #This is the association matrix for haslemere
+plot_network(
+am = m,
+day = 20,
+num.initial.cases = 1,
+prop.asym = 0.4,
+delay_shape =  1,
+delay_scale = 1.4,
+prop.ascertain = 0.8,
+presymrate = 0.4,
+R = 6.5,
+outside = 0.001,
+sensitivity = "high",
+testing = "none",
+isolation = FALSE,
+secondary = FALSE,
+tracing = FALSE,
+quarantine = FALSE)
 }
-
 }
 \author{
 Josh Firth

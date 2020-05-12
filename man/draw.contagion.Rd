@@ -26,7 +26,7 @@ Generate network plot with contagion
 \dontrun{
 
 #example of using function
-a<-load(file="/am_list.RData") #need this for a network
+a<-load(file="data-raw/am_list.RData") #need this for a network
 b<-load(file="/network_examples.RData") #need this for contagion data
 
 

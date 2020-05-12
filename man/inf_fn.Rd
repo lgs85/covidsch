@@ -9,7 +9,7 @@ inf_fn(inc_samp = NULL, theta = NULL)
 \arguments{
 \item{inc_samp}{vector of samples from the incubation period distribution}
 
-\item{k}{numeric skew parameter for sampling the serial interval from the incubation period}
+\item{theta}{rate of presymtomatic transmission}
 }
 \value{
 
@@ -19,4 +19,7 @@ Samples the serial interval for given incubation period samples
 }
 \examples{
 
+}
+\author{
+Lewis Spurgin
 }

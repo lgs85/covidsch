@@ -19,9 +19,45 @@ Set your working directory to the parent directory of the project folder. Instal
 devtools::install("covidhm", dependencies = TRUE) #or whatever your folder name is
 ```
 
-### Run a single scenario
 
-Run a single scenario for a 10 simulations. Use `?scenario_sim` for an explanation of parameters.
+### Run a single scenario and plot a network
+
+```r
+library(covidhm)
+
+#Load association matrices
+load("data-raw/am_list.RData")
+
+#First item in the list is data across all days
+m <- am_list[[1]]
+
+#Plot network
+plot_network(
+am = m,
+day = 20,
+num.initial.cases = 1,
+prop.asym = 0.4,
+delay_shape =  1,
+delay_scale = 1.4,
+prop.ascertain = 0.8,
+presymrate = 0.4,
+R = 6.5,
+outside = 0.001,
+sensitivity = "high",
+testing = "none",
+s = 333,
+isolation = FALSE,
+secondary = FALSE,
+tracing = FALSE,
+quarantine = FALSE)
+
+```
+
+
+
+### Run a single scenario multiple times
+
+Run a single scenario for 10 simulations. Use `?scenario_sim` for an explanation of parameters.
 
 ```r
 library(covidhm)
@@ -42,7 +78,7 @@ scale_y_continuous(name="Weekly number of cases") +
 
 ### Run the full analysis
 
-Run the analyses in the terminal with the following commands:
+Run the analyses in the terminal with the following commands (NB - these take several hours):
 
 ```bash
 
