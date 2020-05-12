@@ -1,0 +1,9 @@
+#BSUB -q huge-memory
+#BSUB -J distancing2
+#BSUB -oo distancing2-%J.out
+#BSUB -eo distancing2-%J.err
+#BSUB -R "rusage[mem=32000]"
+#BSUB -M 32000
+. /etc/profile
+module add R
+R CMD BATCH inst/scripts/distancing2.R

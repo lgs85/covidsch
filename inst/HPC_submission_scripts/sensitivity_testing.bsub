@@ -1,0 +1,9 @@
+#BSUB -q huge-memory
+#BSUB -J sensitivity_testing
+#BSUB -oo sensitivity_testing-%J.out
+#BSUB -eo sensitivity_testing-%J.err
+#BSUB -R "rusage[mem=160000]"
+#BSUB -M 160000 
+. /etc/profile
+module add R
+R CMD BATCH inst/scripts/sensitivity_testing.R

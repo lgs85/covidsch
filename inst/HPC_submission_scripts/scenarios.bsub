@@ -1,0 +1,9 @@
+#BSUB -q huge-memory
+#BSUB -J scenarios
+#BSUB -oo scenarios-%J.out
+#BSUB -eo scenarios-%J.err
+#BSUB -R "rusage[mem=160000]"
+#BSUB -M 160000 
+. /etc/profile
+module add R
+R CMD BATCH inst/scripts/scenarios.R

@@ -1,0 +1,9 @@
+#BSUB -q huge-memory
+#BSUB -J outside
+#BSUB -oo testing-%J.out
+#BSUB -eo testing-%J.err
+#BSUB -R "rusage[mem=32000]"
+#BSUB -M 32000
+. /etc/profile
+module add R
+R CMD BATCH inst/scripts/testing.R
