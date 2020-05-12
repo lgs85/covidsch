@@ -59,11 +59,11 @@ inf_fn <- function(inc_samp = NULL, theta = NULL) {
 
   presym <- rbernoulli(length(inc_samp),p = theta)
 
-  postsym_inds <- sn::rsn(n = sum(!presym),
+  postsym_inds <- rsn(n = sum(!presym),
                           xi = inc_samp[!presym],
                           omega = 2,
                           alpha = Inf)
-  presym_inds <- sn::rsn(n = sum(presym),
+  presym_inds <- rsn(n = sum(presym),
                          xi = inc_samp[presym],
                          omega = (inc_samp[presym]/max(inc_samp[presym]))*3,
                          alpha = -Inf)
@@ -139,10 +139,9 @@ inf_prob <- function(day = NULL, inc_samp = NULL, theta = NULL, R = NULL, contac
 #' @param am association matrix network
 #' @param returns format for output - either "graph", "matrix" or "edgelist"
 #' @param null type of simulation to perform "edge" = randomised edges, "deg" = degrees retained, "latt" = lattice, "clust" = clustered
-
 #' @return
 #' @export
-#' @importFrom igraph graph_from_adjacency_matrix rewire make_lattice delete.edges as_edgelist as_adj %u%
+#' @import igraph
 #'
 #' @examples
 #'
@@ -209,7 +208,6 @@ network_null<-function(am,returns=c("graph","matrix","edgelist"),null=c("edge","
 #' @param am association matrix network
 #' @param returns format for output - either "graph", "matrix" or "edgelist"
 #' @param dist.prop the proportion of 'rare' ties to reassign. Between zero and one.
-
 #' @return
 #' @export
 #' @import igraph
@@ -255,7 +253,6 @@ dist1_func<-function(am,returns,dist.prop){
 #' @param am association matrix network
 #' @param returns format for output - either "graph", "matrix" or "edgelist"
 #' @param dist.prop the proportion of 'rare' ties to reassign. Between zero and one.
-
 #' @return
 #' @export
 #' @import igraph
@@ -307,6 +304,7 @@ dist2_func<-function(am,am.contacts,returns,dist.prop){
 #' @importFrom ggplot2 theme theme_bw
 #' @examples
 #'
+
 theme_ls <- function() {
   theme_bw() +
     theme(axis.text = element_text(size = 12),
@@ -330,7 +328,8 @@ theme_ls <- function() {
 #' @param gridvar name of second variable if plotting two (first is always 'intervention')
 #' @return
 #' @export
-#' @import dplyr ggplot2
+#' @rawNamespace import(dplyr, except = c(union,as_data_frame,groups))
+#' @import ggplot2
 #' @examples
 #'
 
@@ -590,7 +589,6 @@ draw.contagion<-function(am,am.layout=NULL,use.df,day){#takes the association ma
 #' @param day the day to do the contagion for
 #' @param am.layout (if wanting to specify a layout e.g. to keep the layout the same across comparisons)
 #' @inheritParams outbreak_model
-#'
 #' @return
 #' @export
 #' @import igraph

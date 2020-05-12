@@ -19,8 +19,7 @@
 #' @param sensitivity app sensitivity - "high" or "low"
 #' @param testing "realistic", "random" or "none"
 #' @param cap_max_tests integer - maximum number of tests
-#'
-#' @importFrom dplyr filter mutate group_by select rename ungroup bind_rows pull left_join sample_n
+#' @rawNamespace import(dplyr, except = c(union,as_data_frame,groups))
 #' @importFrom tibble tibble
 #' @importFrom purrr map2 map2_dbl map_lgl rbernoulli
 #' @importFrom magrittr %>% %<>%
