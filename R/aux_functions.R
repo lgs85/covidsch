@@ -731,6 +731,7 @@ plot_network_app <- function(
     delay_scale = 9.5
   }
 
+  layout(matrix(1:2,2,1))
   par(mar = c(1,0,0,0))
   plot_network(
     am = am,
@@ -751,7 +752,8 @@ plot_network_app <- function(
     quarantine = quarantine,
     cap_max_tests = cap_max_tests)
 
-  legend("right",
+  plot.new()
+  legend("top",
          pch = c(19,19,19,NA,NA,0),
          lty = c(NA,NA,NA,1,1,NA),
          col = c("darkgrey",
