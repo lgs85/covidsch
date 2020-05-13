@@ -18,8 +18,6 @@ dist_setup <- function(dist_shape = NULL, dist_scale = NULL) {
 
 
 
-
-
 #' Matrix to pairwise list without diagonal
 #' @author lewis Spurgin
 #' @param m matrix of contacts
@@ -653,3 +651,127 @@ plot_network <- function(am,
                         day = day)
 
 }
+
+
+
+
+
+
+#' Plot a newtwork (shiny app version)
+#'
+#' @author Josh Firth
+#' @author Lewis Spurgin
+#' @return
+#' @export
+#' @import igraph
+#' @import clue
+#' @import diagram
+#' @import fields
+#'
+
+plot_network_app <- function(
+  am,
+  day,
+  num.initial.cases,
+  prop.asym,
+  delay,
+  prop.ascertain,
+  presymrate,
+  R,
+  outside,
+  sensitivity,
+  testing,
+  cap_max_tests = NULL,
+  scenario){
+
+
+  if(scenario == "Nothing") {
+    isolation <- FALSE
+    tracing <- FALSE
+    quarantine <- FALSE
+    secondary <- FALSE
+  } else {
+    if(scenario == "Case isolation") {
+      isolation <- TRUE
+      tracing <- FALSE
+      quarantine <- FALSE
+      secondary <- FALSE
+    } else {
+      if(scenario == "Primary tracing") {
+        isolation <- TRUE
+        tracing <- TRUE
+        quarantine <- TRUE
+        secondary <- FALSE
+      } else {
+        if(scenario == "Secondary tracing") {
+          isolation <- TRUE
+          tracing <- TRUE
+          quarantine <- TRUE
+          secondary <- TRUE
+        }
+      }
+    }
+  }
+
+  if(delay == "Short (0-2 days)")
+  {
+    delay_shape = 1
+    delay_scale = 1.4
+  }
+
+  if(delay == "Medium (2-5 days)")
+  {
+    delay_shape = 1.6
+    delay_scale = 2.3
+  }
+
+  if(delay == "Long (5-10 days)")
+  {
+    delay_shape = 4.3
+    delay_scale = 9.5
+  }
+
+  par(mar = c(1,0,0,0))
+  plot_network(
+    am = am,
+    day = day,
+    num.initial.cases = num.initial.cases,
+    prop.asym = prop.asym,
+    delay_shape =  delay_shape,
+    delay_scale = delay_scale,
+    prop.ascertain = prop.ascertain,
+    presymrate = presymrate,
+    R = R,
+    outside = outside,
+    sensitivity = presymrate,
+    testing = testing,
+    isolation = isolation,
+    secondary = secondary,
+    tracing = tracing,
+    quarantine = quarantine,
+    cap_max_tests = cap_max_tests)
+
+  legend("right",
+         pch = c(19,19,19,NA,NA,0),
+         lty = c(NA,NA,NA,1,1,NA),
+         col = c("darkgrey",
+                 "indianred1",
+                 "pink",
+                 "deepskyblue1",
+                 "indianred1",
+                 "black"),
+         legend = c("Not infected",
+                    "Infected",
+                    "Recovered",
+                    "Contacts",
+                    "Infections",
+                    "Isolated/quarantined"),
+         bty = "n",
+         cex = 1.4)
+
+}
+
+
+
+
+
