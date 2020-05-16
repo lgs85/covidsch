@@ -42,7 +42,11 @@
 #' }
 
 outbreak_step <- function(day, case_data, net = haslemere,
-                          prop.asym, incfn, delayfn,
+                          asym.child, asym.adult,
+                          asym.adult.inf,
+                          sym.child.inf,
+                          asym.child.inf,
+                          incfn, delayfn,
                           prop.ascertain, presymrate, R, quarantine,
                           isolation, tracing,
                           secondary, outside,
@@ -50,6 +54,38 @@ outbreak_step <- function(day, case_data, net = haslemere,
                           cap_max_tests = NULL) {
 
 
+
+# DEBUGGING ---------------------------------------------------------------
+
+  # case_data <- outbreak_setup(net = haslemere,
+  #                             df = school_data,
+  #                             num.initial.cases = 1,
+  #                             incfn = dist_setup(dist_shape = 2.322737,dist_scale = 6.492272),
+  #                             delayfn = dist_setup(dist_shape = 1,dist_scale = 1.4),
+  #                             asym.child = 0.8,
+  #                             asym.adult = 0.4,
+  #                             isolation = TRUEs)
+  #
+  # day = 1
+  # net = haslemere
+  # asym.child = 0.8
+  # asym.adult = 0.4
+  # asym.adult.inf = 0.5
+  # sym.child.inf = 0.5
+  # asym.child.inf = 0.2
+  # incfn = dist_setup(dist_shape = 2.322737,dist_scale = 6.492272)
+  # delayfn = dist_setup(dist_shape = 1,dist_scale = 1.4)
+  # prop.ascertain = 0.8
+  # presymrate = 0.4
+  # R = 1
+  # quarantine = FALSE
+  # isolation = TRUE
+  # tracing = FALSE
+  # secondary = FALSE
+  # outside = 0.0001
+  # sensitivity = "high"
+  # testing = "none"
+  # cap_max_tests = NULL
 
   # Rename some variables ---------------------------------------------------
 
@@ -157,7 +193,16 @@ outbreak_step <- function(day, case_data, net = haslemere,
     infector_rows <- match(new_cases$caseid,
                            case_data$caseid)
 
-    asymrate <- ifelse(case_data$asym[infector_rows],0.5,1)
+    #Scale infection probability by age and symptomatic status
+    asymrate <- rep(NA,length(infector_rows))
+    asymrate[case_data$age[infector_rows] == "child" &
+               case_data$asym[infector_rows]] <- asym.child.inf
+    asymrate[case_data$age[infector_rows] == "adult" &
+               case_data$asym[infector_rows]] <- asym.adult.inf
+    asymrate[case_data$age[infector_rows] == "child" &
+               !case_data$asym[infector_rows]] <- sym.child.inf
+    asymrate[case_data$age[infector_rows] == "adult" &
+               !case_data$asym[infector_rows]] <- 1
 
     infected <- rbernoulli(nrow(new_cases),
                            p = inf_prob(day = day - case_data$exposure[infector_rows],

@@ -24,13 +24,27 @@
 #'}
 #'
 #'
-outbreak_setup <- function(net, num.initial.cases, incfn, delayfn, prop.asym, isolation) {
+outbreak_setup <- function(net, df, num.initial.cases, incfn, delayfn, asym.child, asym.adult, isolation) {
+
+
+# DEBUGGING ---------------------------------------------------------------
+
+net <- haslemere
+df <- school_data
+num.initial.cases <- 5
+incfn <- dist_setup(dist_shape = 2.322737,dist_scale = 6.492272)
+delayfn <- dist_setup(dist_shape = 1,dist_scale = 1.4)
+asym.child <- 0.8
+asym.adult <- 0.4
+isolation <- TRUE
+
 
   # Set up table of population
   popsize <- length(unique(c(net$Var1,net$Var2)))
   case_data <- tibble(exposure = NA, # Exposure time of 0 for all initial cases
-                      asym = purrr::rbernoulli(popsize, p = prop.asym),
-                      caseid = unique(c(net$Var1,net$Var2)), # set case id
+                      asym = NA,
+                      caseid = df$ID, # set case id
+                      age = df$age,
                       infector = NA,
                       onset = NA,
                       isolated_time = Inf,
@@ -41,6 +55,14 @@ outbreak_setup <- function(net, num.initial.cases, incfn, delayfn, prop.asym, is
                       status = "S",
                       isolated = FALSE,
                       quarantined = FALSE)
+
+  case_data$asym[case_data$age == "adult"] <-
+    rbernoulli(n = length(case_data$asym[case_data$age == "adult"]),
+               p = asym.adult)
+
+  case_data$asym[case_data$age == "child"] <-
+    rbernoulli(n = length(case_data$asym[case_data$age == "child"]),
+               p = asym.child)
 
   # Set up initial cases
   initial_cases <- sample(1:popsize,num.initial.cases)

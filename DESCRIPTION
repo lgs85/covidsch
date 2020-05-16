@@ -1,6 +1,6 @@
-Package: covidhm
+Package: covidsch
 Type: Package
-Title: Assessment of contact tracing, social distancing, and real-world social tracking data for control of COVID-19
+Title: School-based network model for COVID-19
 Version: 0.1.0
 Authors@R: c(
     person(given = "Lewis Spurgin",
