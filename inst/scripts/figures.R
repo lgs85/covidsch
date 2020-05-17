@@ -132,7 +132,7 @@ dev.off()
 
 # 40% asym children -------------------------------------------------------
 
-inf <- read_rds("data-raw/infection_rates_asym90.rds")
+inf <- read_rds("data-raw/infection_rates_asym40.rds")
 
 labs <- unique(inf$intervention)
 figa <- case_plot(filter(inf,intervention == labs[1]))+
