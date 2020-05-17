@@ -312,11 +312,12 @@ dist2_func<-function(am,am.contacts,returns,dist.prop){
 
 theme_ls <- function() {
   theme_bw() +
-    theme(axis.text = element_text(size = 12),
-          axis.title = element_text(size = 13),
-          strip.text = element_text(size = 13),
+    theme(axis.text = element_text(size = 18),
+          axis.title = element_text(size = 20),
+          strip.text = element_text(size = 20),
           legend.title = element_blank(),
-          legend.text = element_text(size = 13),
+          legend.text = element_text(size = 20),
+          plot.title = element_text(size = 22),
           legend.key.size = unit(2.5,"lines"),
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank())
@@ -778,3 +779,284 @@ plot_network_app <- function(
 
 
 
+
+
+
+#' Generate school network plot with contagion
+#'
+#' @author Josh Firth
+#' @param am association matrix
+#' @param use.df the dataframe information of the contagion
+#' @param day the day to do the contagion for
+#' @param am.layout (if wanting to specify a layout e.g. to keep the layout the same across comparisons)
+#'
+#' @return
+#' @export
+#' @import igraph
+#' @import clue
+#' @import diagram
+#' @import fields
+#'
+#' @examples
+
+
+draw.sch.contagion<-function(am,am.layout=NULL,layout.type=NULL,use.df,day,groups=NULL){#takes the association matrix, the dataframe information of the contagion, the day to do the contagion for, and the layout (if wanting to specify a layout e.g. to keep the layout the same across comparisons), and the layout.type, ie. forced circular layout (circ) or forced increased group layout (group), and takes the groups
+
+  range.use<-function(x,min.use,max.use){ (x - min(x,na.rm=T))/(max(x,na.rm=T)-min(x,na.rm=T)) * (max.use - min.use) + min.use } #define for later
+  if(!is.null(groups)){
+    groupm<-name.class$group==matrix(name.class$group,nrow(name.class),nrow(name.class),byrow=T)
+    diag(groupm)<-F
+  } #make a ind-by-ind group matrix
+
+  #arrange data:
+  use.df<-use.df[order(use.df$caseid),]
+  use.df$v<-use.df$caseid
+  use.df$degree<-colSums(am>0)
+  use.df$isolated_time[is.infinite(use.df$isolated_time)]<-day+1000 #to avoid infinite values
+  use.df$release_time[is.infinite(use.df$release_time)]<-day+1000 #to avoid infinite values
+
+  #make the needed igraph object from the association matrix
+  am.i<-graph_from_adjacency_matrix(am,"undirected",weighted=T,diag=F)
+  am.betgroup<-am
+  am.betgroup[groupm]<-0
+
+  i<-graph_from_adjacency_matrix(am,"undirected",weighted=T,diag=F)
+  #now, if a layout isn't given in the function, generate the wanted one here:
+  if(is.null(am.layout)){
+    am.lay<-layout_nicely(am.i)
+
+
+    if(layout.type%in%c("group","groupcirc")){ #~75% of ties within groups are scored 3, only 2.6% are 0, only 3.2% are 1
+      am.group.lay<-am
+      am.group.lay[groupm]<-am.group.lay[groupm]*5
+      am.group.lay.i<-graph_from_adjacency_matrix(am.group.lay,"undirected",weighted=T,diag=F)
+      am.lay<-layout_nicely(am.group.lay.i)
+    } #finshed making group based
+
+    #plot(am.lay,col=groupcols[groups])
+
+    if(layout.type%in%c("circ","groupcirc")){
+      #making circular
+      ps<-nrow(am.lay)
+      dim.tl<-ceiling(sqrt(ps))*2 #needs *2 just to make sure we have enough points
+      #grid.lay<-expand.grid(floor(-dim.tl/2):ceiling(dim.tl/2),((floor(-dim.tl/2))-0.5):(ceiling((dim.tl/2))+0.5))
+      xpoints1<-floor(-dim.tl/2):ceiling(dim.tl/2)
+      xpoints2<-xpoints1+0.5
+      ypoints1<-xpoints1
+      ypoints2<-xpoints2
+      grid.lay1<-expand.grid(xpoints2,ypoints1)
+      grid.lay2<-expand.grid(xpoints1,ypoints2)
+      grid.lay3<-expand.grid(xpoints1,ypoints1)
+      grid.lay4<-expand.grid(xpoints2,ypoints2)
+      grid.lay<-rbind(grid.lay1,grid.lay2,grid.lay3,grid.lay4)
+      grid.lay[,1]<-jitter(grid.lay[,1],1)
+      grid.lay[,2]<-jitter(grid.lay[,2],1)
+      euc.dist <- function(x1, x2) sqrt(sum((x1 - x2) ^ 2))
+      grid.lay[,3]<-apply(grid.lay,1,function(a)euc.dist(matrix(c(mean(grid.lay[,1]),mean(grid.lay[,2])),1,2),a))
+      max.dist<-grid.lay[,3][((1:length(unique(grid.lay[,3])))[match(grid.lay[,3],sort(unique(grid.lay[,3])))])==ps]
+      g.lay.c<-grid.lay[grid.lay[,3]<=max.dist,]
+      g.lay.c[,1]<-scale(g.lay.c[,1])[,1]
+      g.lay.c[,2]<-scale(g.lay.c[,2])[,1]
+      am.lay[,1]<-scale(am.lay[,1])[,1]
+      am.lay[,2]<-scale(am.lay[,2])[,1]
+      distances <- rdist(am.lay[,1:2],g.lay.c[,1:2])
+      sol <- solve_LSAP(t(distances))
+      am.lay[as.numeric(sol),1:2]<-as.matrix(g.lay.c[,1:2])
+    }####finished making circular
+
+    #plot(am.lay,col=groupcols[groups])
+
+
+  } #finished making am.lay if layout null
+
+
+  if(!is.null(am.layout)){am.lay<-am.layout} #finished is null layout
+
+  #standardise am.lay into desired range
+  range.scale<-c(0,2)
+  am.lay<-apply(am.lay,2,function(a)range.use(a,min(range.scale),max(range.scale)))
+  #finished providing layout
+
+
+  #set time information from the given day periods:
+  max.period<-0:day
+
+
+  #start getting plot info
+  #These could be integrated within the loop but kept seperate for now to allow comparisons across time periods in needed
+  #infected = node colour (grey=not yet vs red=yes)
+  use.df$infected.t1<-use.df$exposure%in%max.period
+
+  use.df$onset.t1<-ceiling(use.df$onset)%in%max.period
+  use.df$observed.t1<-ceiling(use.df$onset)%in%max.period & !use.df$asym
+
+
+  #Recovered = node shading (red=no vs pinky red=yes)
+  use.df$recovered.t1<-round(use.df$recovery_time)%in%max.period
+
+  #isolated = node square and outlined - need to make this list like or something
+  use.df$isolated.t1<-(round(use.df$isolated_time)<=day) & (round(use.df$release_time)>day)
+
+  #released = node crectangle without outline
+  use.df$released.t1<-round(use.df$release_time)<=day
+
+
+  #make infection lists
+  use.inf.el<-use.df[!is.na(use.df$infector),c("infector","v","infected.t1")]
+
+  use.inf.el$x0<-am.lay[use.inf.el$infector,1]
+  use.inf.el$y0<-am.lay[use.inf.el$infector,2]
+  use.inf.el$x1<-am.lay[use.inf.el$v,1]
+  use.inf.el$y1<-am.lay[use.inf.el$v,2]
+  #arrows of infection:
+  use.inf.el.use<-use.inf.el[use.inf.el$infected.t1,]
+
+  #Plotting information from here
+  makeTrans<-function(..., alpha=0.5) {
+    if(alpha<0 | alpha>1) stop("alpha must be between 0 and 1")
+    alpha = floor(255*alpha)
+    newColor = col2rgb(col=unlist(list(...)), alpha=FALSE)
+    .makeTrans = function(col, alpha) {
+      rgb(red=col[1], green=col[2], blue=col[3], alpha=alpha, maxColorValue=255)}
+    newColor = apply(newColor, 2, .makeTrans, alpha=alpha)
+    return(newColor)}
+
+  #edge info
+  edgew<-E(am.i)$weight
+  #E(am.i)$weight==am[lower.tri(am)][am[lower.tri(am)]>0]
+  #knock out within-group links
+  edge.from<-row(am)[lower.tri(am)][am[lower.tri(am)]>0]
+  edge.to<-col(am)[lower.tri(am)][am[lower.tri(am)]>0]
+  edge.in.group<-groups[edge.from]==groups[edge.to]
+  edgew[edge.in.group]<- 0
+
+  edgew<-range.use(edgew,0,0.6)
+  edge.cols<-makeTrans("darkgrey",alpha=0.7)
+
+
+  #make size of nodes
+  ndeg<-colSums(am>0)
+  nstr<-colSums(am)
+
+  vert.sizes<-range.use(rank(ndeg),3,6)
+  vert.sizes<-vert.sizes+0
+
+  #make vert colours:
+  groupcols<-unlist(strsplit("aquamarine4,chocolate3,pink4,cyan3,darkgoldenrod3,chartreuse4,darkorchid3,deeppink3,khaki4,wheat4",split=",") )
+  vert.bg<-groupcols[groups]
+  vert.bg<-makeTrans(vert.bg,alpha=0.6)
+
+  vert.outline<-vert.bg
+  vert.outline[use.df$infected.t1]<-"black"
+  vert.outline[use.df$infected.t1 & !use.df$asym]<-"black"
+  vert.outline[use.df$recovered.t1]<-"darkgrey"
+
+
+  vert.shapes<-rep("circle",ncol(am))
+  vert.shapes[use.df$age=="adult"]<-"square"
+
+  vert.labels<-rep(NA,ncol(am))
+  vert.labels[use.df$infected.t1]<-"I"
+  vert.labels[use.df$observed.t1]<-"S"
+  vert.labels.cols<-"black"
+  vert.labels.sizes<-vert.sizes/3
+
+  #Plotting
+  plot.igraph(am.i,layout=am.lay,rescale=F,edge.width=edgew,edge.curved=T,edge.color=edge.cols,vertex.label=vert.labels,vertex.label.color=vert.labels.cols,vertex.label.cex=vert.labels.sizes,vertex.size=vert.sizes,vertex.color=vert.bg,vertex.frame.color=vert.outline,vertex.shape=vert.shapes,xlim=range.scale,ylim=range.scale)
+  #infection arrows:
+  if(sum(!is.na(use.df$infector)) > 0){
+  apply(use.inf.el.use,1,function(a){curvedarrow(a[c("x0","y0")],a[c("x1","y1")],lwd=0.7,lty=1,lcol="firebrick3",arr.col="firebrick3",arr.pos=0.925,curve=0.3,dr=0.01,endhead = T, segment = c(0, 1),arr.type="curved",arr.length=0.25)})
+}
+  #if you wanted to generate a layout and then use it next time, this returns it
+  if(is.null(am.layout)){return(am.lay)}
+}#ends function
+
+
+
+
+
+#' Run an outbreak model and generate network plot with contagion
+#'
+#' @author Josh Firth
+#' @author Lewis Spurgin
+#' @param am association matrix
+#' @param day the day to do the contagion for
+#' @param am.layout (if wanting to specify a layout e.g. to keep the layout the same across comparisons)
+#' @inheritParams outbreak_model
+#' @return
+#' @export
+#' @import igraph
+#' @import clue
+#' @import diagram
+#' @import fields
+#'
+#' @examples
+#'
+#' \dontrun{
+#'
+#' load("data-raw/am_list.RData")
+#' m <- am_list[[1]] #This is the association matrix for haslemere
+#' plot_network(
+#' am = m,
+#' day = 20,
+#' num.initial.cases = 1,
+#' prop.asym = 0.4,
+#' delay_shape =  1,
+#' delay_scale = 1.4,
+#' prop.ascertain = 0.8,
+#' presymrate = 0.4,
+#' R = 6.5,
+#' outside = 0.001,
+#' sensitivity = "high",
+#' testing = "none",
+#' isolation = FALSE,
+#' secondary = FALSE,
+#' tracing = FALSE,
+#' quarantine = FALSE)
+#'}
+
+plot_sch_network <- function(am,
+                             df,
+                         am.layout = NULL,
+                         day,
+                         groups,
+                         num.initial.cases = NULL,
+                         prop.ascertain = NULL,
+                         R = NULL, presymrate = NULL, delay_shape = NULL,
+                         delay_scale = NULL,
+                         asym.adult = NULL,
+                         asym.child = NULL,
+                         asym.adult.inf = NULL,
+                         sym.child.inf = NULL,
+                         asym.child.inf = NULL,
+                         quarantine = NULL, isolation = NULL,
+                         tracing = NULL, secondary = NULL,
+                         outside = NULL, sensitivity = NULL,
+                         testing = NULL, cap_max_tests = NULL, s = NULL) {
+
+  net1 <- format_network(am)
+  case_data <- outbreak_model(net = net1,
+                              df = df,
+                              num.initial.cases = num.initial.cases,
+                              prop.ascertain = prop.ascertain,
+                              cap_max_days = day,
+                              R = R, presymrate = presymrate,
+                              delay_shape = delay_shape,
+                              delay_scale = delay_scale,
+                              asym.adult = asym.adult,
+                              asym.child = asym.child,
+                              asym.adult.inf = asym.adult.inf,
+                              sym.child.inf = sym.child.inf,
+                              asym.child.inf = asym.child.inf,
+                              quarantine = quarantine, isolation = isolation,
+                              tracing = tracing, secondary = secondary,
+                              outside = outside, sensitivity = sensitivity,
+                              testing = testing, cap_max_tests = cap_max_tests,
+                              output = "raw", s = s)
+  set.seed(s)
+  draw.sch.contagion(am = am,
+                 layout.type = "group",
+                 use.df = case_data,
+                 day = day,
+                 groups = groups)
+}

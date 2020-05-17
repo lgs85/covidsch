@@ -4,9 +4,9 @@ library(tidyverse)
 library(covidsch)
 library(cowplot)
 
-load("data-raw/school_data.RData")
+load("data-raw/school_data_2.RData")
 
-net.sch <- format_network(am.sch,idvec = name.class$id)
+net.sch <- format_network(am2.sch,idvec = name.class$id)
 
 case_data <- outbreak_setup(net = net.sch,
                             df = name.class,
