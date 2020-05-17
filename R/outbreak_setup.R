@@ -29,21 +29,21 @@ outbreak_setup <- function(net, df, num.initial.cases, incfn, delayfn, asym.chil
 
 # DEBUGGING ---------------------------------------------------------------
 
-net <- haslemere
-df <- school_data
-num.initial.cases <- 5
-incfn <- dist_setup(dist_shape = 2.322737,dist_scale = 6.492272)
-delayfn <- dist_setup(dist_shape = 1,dist_scale = 1.4)
-asym.child <- 0.8
-asym.adult <- 0.4
-isolation <- TRUE
+# net <- am.sch
+# df <- school_data
+# num.initial.cases <- 5
+# incfn <- dist_setup(dist_shape = 2.322737,dist_scale = 6.492272)
+# delayfn <- dist_setup(dist_shape = 1,dist_scale = 1.4)
+# asym.child <- 0.8
+# asym.adult <- 0.4
+# isolation <- TRUE
 
 
   # Set up table of population
   popsize <- length(unique(c(net$Var1,net$Var2)))
   case_data <- tibble(exposure = NA, # Exposure time of 0 for all initial cases
                       asym = NA,
-                      caseid = df$ID, # set case id
+                      caseid = df$id, # set case id
                       age = df$age,
                       infector = NA,
                       onset = NA,
@@ -76,7 +76,7 @@ isolation <- TRUE
     sym_cases <- initial_cases[!case_data$asym[initial_cases]]
     case_data$isolated_time[sym_cases] <- case_data$onset[sym_cases] +
       delayfn(length(sym_cases))
-    case_data$release_time[sym_cases] <- case_data$isolated_time[sym_cases] + 14
+    case_data$release_time[sym_cases] <- case_data$isolated_time[sym_cases] + 100
   }
 
 

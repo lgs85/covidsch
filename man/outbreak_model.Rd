@@ -5,7 +5,8 @@
 \title{Run a single instance of the branching process model}
 \usage{
 outbreak_model(
-  net = haslemere,
+  net,
+  df,
   num.initial.cases,
   prop.ascertain,
   cap_max_days,
@@ -13,7 +14,11 @@ outbreak_model(
   presymrate,
   delay_shape,
   delay_scale,
-  prop.asym,
+  asym.adult,
+  asym.child,
+  asym.adult.inf,
+  sym.child.inf,
+  asym.child.inf,
   quarantine,
   isolation,
   tracing,
@@ -22,7 +27,7 @@ outbreak_model(
   sensitivity = "high",
   testing = "none",
   cap_max_tests = NULL,
-  weekly = TRUE,
+  output = "weekly",
   s = NULL
 )
 }
@@ -41,8 +46,6 @@ outbreak_model(
 
 \item{delay_scale}{numeric scale parameter of delay distribution}
 
-\item{prop.asym}{proportion of asymptomtaic cases (must be 0<=x<=1)}
-
 \item{quarantine}{logical whether quarantine is in effect, if TRUE then traced contacts are isolated before symptom onset}
 
 \item{isolation}{logical whether isolation is in effect}
@@ -57,9 +60,9 @@ outbreak_model(
 
 \item{cap_max_tests}{integer - maximum number of tests}
 
-\item{weekly}{logical - return summarised weekly cases or the raw case data}
-
 \item{s}{seed - optional for reproducing the same output. Useful for \code{plot_network()}}
+
+\item{weekly}{logical - return summarised weekly cases or the raw case data}
 }
 \value{
 data.frame of cases by week, cumulative cases, and weekly isolations, quarantines and tests

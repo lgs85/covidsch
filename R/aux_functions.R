@@ -29,10 +29,17 @@ dist_setup <- function(dist_shape = NULL, dist_scale = NULL) {
 #' @examples
 #'
 
-format_network <- function(m) {
+format_network <- function(m, idvec = NULL) {
   diag(m) <- NA
-  rownames(m) <- c(1:nrow(m))
-  colnames(m) <- c(1:nrow(m))
+
+  if(!is.null(idvec)){
+    rownames(m) <- idvec
+    colnames(m) <- idvec
+  }else {
+    rownames(m) <- c(1:nrow(m))
+    colnames(m) <- c(1:nrow(m))
+  }
+
   out <- as_tibble(melt(m)) %>%
     filter(!is.na(value))
   return(out)
@@ -122,7 +129,7 @@ inf_prob <- function(day = NULL, inc_samp = NULL, theta = NULL, R = NULL, contac
   out[presym] <- presym_inds
   out[!presym] <- postsym_inds
 
-  out2 <- 1 - exp(1)^(-(out*R*contactrate))
+  out2 <- 1 - exp(1)^(-(out*R*contactrate*infasym))
 
   return(out2)
 }
@@ -331,64 +338,58 @@ theme_ls <- function() {
 #' @examples
 #'
 
-case_plot <- function(df,testing = FALSE, facet = "wrap", nrow = NULL,
-                      gridvar = NULL)
+case_plot <- function(out)
 {
 
-  if(!facet %in% c("wrap","grid")){df$intervention <- NA}
-  if(facet!= "grid"){df$newvar <- NA}
-  if(facet == "grid"){df$newvar <- pull(df,gridvar)}
-  toplot <- df %>%
-    select(-weekly_cases,-cumiso) %>%
-    filter(week < 10) %>%
-    gather(key = type, value = n_cases,weekly_isolation:cumcases) %>%
-    group_by(week,type, intervention, newvar) %>%
+  for(i in c(1:3))
+  {
+    assign(paste0("c",i,"x"),
+           out %>%
+             group_by(sim) %>%
+             filter(cumcases >= i) %>%
+             summarise(c1 = min(day)) %>%
+             pull(c1) %>%
+             median() %>%
+             round())
+    assign(paste0("c",i,"y"),out %>%
+             filter(day == get(paste0("c",i,"x"))) %>%
+             pull(cuminf) %>%
+             median())
+
+  }
+
+  dl <- data.frame(xmin = rep(-Inf,3),xmax = c(c1x,c2x,c3x),
+                   ymin = rep(-Inf,3),ymax = c(c1y,c2y,c3y))
+
+
+
+  out %>%
+    gather(key = type, value = n_cases,cuminf:cumcases) %>%
+    group_by(day,type,intervention) %>%
     summarise(med_cases = median(n_cases),
               Q75 = quantile(n_cases,0.75),
               Q25 = quantile(n_cases,0.25)) %>%
     ungroup() %>%
-    mutate(type = recode(type,cumcases = "Cumulative\ncases",
-                         weekly_isolation = "Isolations\nper day",
-                         weekly_quarantine = "Quarantines\nper day",
-                         weekly_tests = "Tests\nper week")) %>%
-    mutate(type = factor(type,levels = c("Cumulative\ncases",
-                                         "Isolations\nper day",
-                                         "Quarantines\nper day",
-                                         "Tests\nper week")))
-
-  if(!testing){
-    toplot <- filter(toplot,type != "Tests\nper week")
-  }
-
-  inner_plot <- function(toplot){
-    ggplot(toplot, aes(x = week,y = med_cases,col = type, fill = type))+
-      geom_line()+
-      geom_ribbon(aes(ymax = Q75,ymin = Q25),alpha = 0.1,linetype = 0)+
-      theme_ls()+
-      scale_colour_manual(values = c("indianred1",
-                                     "darkslategray",
-                                     "darkorange",
-                                     "steelblue"
-      ))+
-      scale_fill_manual(values = c("indianred1",
+    mutate(type = recode(type,cumcases = "Symptomatic cases",cuminf = "Infections")) %>%
+    ggplot(aes(x = day,y = med_cases))+
+    geom_line(aes(group = type, col = type))+
+    geom_ribbon(aes(ymax = Q75,ymin = Q25, col = type, fill= type),col = NA,alpha = 0.2)+
+    theme_ls()+
+    scale_colour_manual(values = c("indianred1",
                                    "darkslategray",
                                    "darkorange",
                                    "steelblue"
-      ))+
-      xlab("Week")+
-      ylab("Number of cases")
-  }
+    ))+
+    scale_fill_manual(values = c("indianred1",
+                                 "darkslategray",
+                                 "darkorange",
+                                 "steelblue"
+    ))+
+    ylab("Cumulative cases")+
+    xlab("Day")+
+    geom_segment(data = dl,aes(x = xmin,xend = xmax, y = ymax, yend = ymax),lty = 2)+
+    geom_segment(data = dl,aes(x = xmax,xend = xmax, y = ymin, yend = ymax),lty = 2)
 
-    if(facet == "wrap"){
-      p <- inner_plot(toplot) + facet_wrap(~intervention,nrow = nrow)
-    } else {
-      if(facet == "grid"){
-        p <- inner_plot(toplot) + facet_grid(intervention~newvar)
-      } else {
-      p <- inner_plot(toplot)
-      }
-    }
-    return(p)
 }
 
 

@@ -4,7 +4,7 @@
 \alias{format_network}
 \title{Matrix to pairwise list without diagonal}
 \usage{
-format_network(m)
+format_network(m, idvec = NULL)
 }
 \arguments{
 \item{m}{matrix of contacts}

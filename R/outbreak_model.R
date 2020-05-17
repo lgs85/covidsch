@@ -24,8 +24,8 @@
 #' outside = 0.001, sensitivity = "high", testing = "none"}
 #'
 #'
-outbreak_model <- function(net = haslemere,
-                           df = school_data,
+outbreak_model <- function(net,
+                           df,
                            num.initial.cases,
                            prop.ascertain,
                            cap_max_days,
@@ -40,7 +40,7 @@ outbreak_model <- function(net = haslemere,
                            tracing, secondary,
                            outside, sensitivity = "high",
                            testing = "none", cap_max_tests = NULL,
-                           weekly = TRUE, s = NULL) {
+                           output = "weekly", s = NULL) {
 
   # Set up functions to sample from distributions
   # incubation period sampling function
@@ -113,6 +113,36 @@ outbreak_model <- function(net = haslemere,
 
   }
 
+  daily_cases <- tibble(
+    day = c(1:cap_max_days)
+  ) %>%
+    left_join(case_data %>%
+                filter(!is.na(exposure)) %>%
+                mutate(day = floor(exposure)) %>%
+                group_by(day) %>%
+                summarise(daily_infections = n()),
+              by = "day") %>%
+    left_join(case_data %>%
+                filter(!asym,
+                       !is.na(onset)) %>%
+                mutate(day = floor(onset)) %>%
+                group_by(day) %>%
+                summarise(daily_cases = n()),
+              by = "day") %>%
+    left_join(case_data %>%
+                filter(isolated_time < Inf) %>%
+                mutate(day = floor(isolated_time)) %>%
+                group_by(day) %>%
+                summarise(daily_isolations = n()),
+              by = "day") %>%
+    filter(day %in% c(1:cap_max_days)) %>%
+    mutate(daily_quarantined = daily_quarantined,
+           daily_tests = daily_tests) %>%
+    replace(is.na(.), 0) %>%
+    mutate(cuminf = cumsum(daily_infections),
+           cumcases = cumsum(daily_cases)) %>%
+    filter(day %in% c(1:cap_max_days))
+
   # Prepare output, group into weeks
   weekly_isolation <- c()
   weekly_quarantine <- c()
@@ -142,16 +172,26 @@ outbreak_model <- function(net = haslemere,
            weekly_isolation = tidyr::replace_na(weekly_isolation,0))
 
 
-  # order and sum up, cut at max_week and add effective R0
+  # order and sum up
   weekly_cases %<>%
     dplyr::arrange(week) %>%
     dplyr::mutate(cumcases = cumsum(weekly_cases),
                   cumiso = cumsum(weekly_isolation))
 
   # return
-  if(weekly) {
+  if(output == "weekly") {
     return(weekly_cases)
   } else {
-    return(case_data)
+    if(output == "raw")
+    {
+      return(case_data)
+    } else{
+      if(output == "daily"){
+        return(daily_cases)
+      } else{
+        stop("output must be 'daily', 'weekly' or 'raw'")
+      }
+    }
   }
+
 }

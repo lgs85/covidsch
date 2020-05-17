@@ -4,7 +4,16 @@
 \alias{outbreak_setup}
 \title{Set up initial cases for network model}
 \usage{
-outbreak_setup(net, num.initial.cases, incfn, delayfn, prop.asym, isolation)
+outbreak_setup(
+  net,
+  df,
+  num.initial.cases,
+  incfn,
+  delayfn,
+  asym.child,
+  asym.adult,
+  isolation
+)
 }
 \arguments{
 \item{net}{network in pairwise list format. Object \code{haslemere} is built into the package.}
@@ -15,9 +24,9 @@ outbreak_setup(net, num.initial.cases, incfn, delayfn, prop.asym, isolation)
 
 \item{delayfn}{function that samples from the onset-to-hospitalisation delay Weibull distribution; generated using dist_setup}
 
-\item{prop.asym}{numeric proportion of cases that are sublinical (between 0 and 1)}
-
 \item{isolation}{logical - do you want indiviuals to self-isolate on infection?}
+
+\item{prop.asym}{numeric proportion of cases that are sublinical (between 0 and 1)}
 }
 \value{
 data.frame of cases in outbreak so far

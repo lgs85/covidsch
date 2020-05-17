@@ -41,7 +41,7 @@
 #' presymrate = 0.4, R = 6.5, quarantine = TRUE, isolation = TRUE, tracing = TRUE, secondary = TRUE, sensitivity = "high", outside = 0.001, testing = "none")
 #' }
 
-outbreak_step <- function(day, case_data, net = haslemere,
+outbreak_step <- function(day, case_data, net,
                           asym.child, asym.adult,
                           asym.adult.inf,
                           sym.child.inf,
@@ -55,7 +55,7 @@ outbreak_step <- function(day, case_data, net = haslemere,
 
 
 
-# DEBUGGING ---------------------------------------------------------------
+  # DEBUGGING ---------------------------------------------------------------
 
   # case_data <- outbreak_setup(net = haslemere,
   #                             df = school_data,
@@ -92,8 +92,10 @@ outbreak_step <- function(day, case_data, net = haslemere,
   newnet <- net
   colnames(newnet) <- c("caseid","contact","rate")
 
-
-
+  if(day > 1000) stop("you've gone on too long - check how you've allocated weekends")
+  first_weekend_day <- sample(1:7,1)
+  weekends <- c(seq(first_weekend_day,1000,7),seq(first_weekend_day+1,1000,7))
+  weekends <- weekends[order(weekends)]
 
 
 
@@ -116,9 +118,9 @@ outbreak_step <- function(day, case_data, net = haslemere,
 
     #Reset isolation, release and test time for individuals who didn't undergo full isolation or quarantine
     early_releases <- c(new_releases[case_data$release_time[new_releases] <
-                                       (case_data$isolated_time[new_releases] + 14)],
+                                       (case_data$isolated_time[new_releases] + 100)],
                         new_releases[case_data$release_time[new_releases] <
-                                       (case_data$quarantine_time[new_releases] + 14)])
+                                       (case_data$quarantine_time[new_releases] + 100)])
     case_data$isolated_time[early_releases] <- Inf
     case_data$test_time[early_releases] <- Inf
     case_data$release_time[early_releases] <- Inf
@@ -152,101 +154,111 @@ outbreak_step <- function(day, case_data, net = haslemere,
       sym_cases <- new_infections[!case_data$asym[new_infections]]
       case_data$isolated_time[sym_cases] <- case_data$onset[sym_cases] +
         delayfn(length(sym_cases))
-      case_data$release_time[sym_cases] <- case_data$isolated_time[sym_cases] + 14
+      case_data$release_time[sym_cases] <- case_data$isolated_time[sym_cases] + 100
     }
   }
 
 
-  # Pull out infectious inds who are not isolated
-  infectors <- dplyr::filter(case_data, status == "I", !isolated)
+
+  # Infection within the network only happens on weekdays -------------------
+
+
+  if(!day %in% weekends)
+  {
+
+    # Pull out infectious inds who are not isolated
+    infectors <- dplyr::filter(case_data, status == "I", !isolated)
 
 
 
 
 
 
-  # New cases  ----------------------------
+    # New cases  ----------------------------
 
-  #Get contacts of infectious inds from network
-  new_cases <- dplyr::filter(newnet,
-                             caseid %in% infectors$caseid,
-                             rate > 0)
+    #Get contacts of infectious inds from network
+    new_cases <- dplyr::filter(newnet,
+                               caseid %in% infectors$caseid,
+                               rate > 0)
 
-  new_inf_rows <- match(new_cases$contact,
-                        case_data$caseid)
+    new_inf_rows <- match(new_cases$contact,
+                          case_data$caseid)
 
-  #Only keep susceptible contacts who are not isolated
-  new_cases <- new_cases[case_data$status[new_inf_rows] == "S" &
-                           !case_data$isolated[new_inf_rows] &
-                           !case_data$quarantined[new_inf_rows],]
-
-
-
-
-
-
-  # Generate new infections -------------------------------------------------
-
-  if(nrow(new_cases) > 0) {
-
-    #Filter based on probability that each contact is infected
-    infector_rows <- match(new_cases$caseid,
-                           case_data$caseid)
-
-    #Scale infection probability by age and symptomatic status
-    asymrate <- rep(NA,length(infector_rows))
-    asymrate[case_data$age[infector_rows] == "child" &
-               case_data$asym[infector_rows]] <- asym.child.inf
-    asymrate[case_data$age[infector_rows] == "adult" &
-               case_data$asym[infector_rows]] <- asym.adult.inf
-    asymrate[case_data$age[infector_rows] == "child" &
-               !case_data$asym[infector_rows]] <- sym.child.inf
-    asymrate[case_data$age[infector_rows] == "adult" &
-               !case_data$asym[infector_rows]] <- 1
-
-    infected <- rbernoulli(nrow(new_cases),
-                           p = inf_prob(day = day - case_data$exposure[infector_rows],
-                                        inc_samp = case_data$onset[infector_rows],
-                                        contactrate = new_cases$rate,
-                                        theta = presymrate,
-                                        infasym = asymrate,
-                                        R = R))
-
-    #Each contact can only be infected once
-    new_cases <- new_cases[infected,] %>%
-      group_by(contact) %>%
-      sample_n(1)
-
-  }
+    #Only keep susceptible contacts who are not isolated
+    new_cases <- new_cases[case_data$status[new_inf_rows] == "S" &
+                             !case_data$isolated[new_inf_rows] &
+                             !case_data$quarantined[new_inf_rows],]
 
 
 
 
 
 
-  # Compile data for all new infections -------------------------------------
+    # Generate new infections -------------------------------------------------
 
+    if(nrow(new_cases) > 0) {
 
-  # Compile a data frame for all new cases, new_cases is the amount of people that each infector has infected
+      #Filter based on probability that each contact is infected
+      infector_rows <- match(new_cases$caseid,
+                             case_data$caseid)
 
-  if(nrow(new_cases) > 0){
+      #Scale infection probability by age and symptomatic status
+      asymrate <- rep(NA,length(infector_rows))
+      asymrate[case_data$age[infector_rows] == "child" &
+                 case_data$asym[infector_rows]] <- asym.child.inf
+      asymrate[case_data$age[infector_rows] == "adult" &
+                 case_data$asym[infector_rows]] <- asym.adult.inf
+      asymrate[case_data$age[infector_rows] == "child" &
+                 !case_data$asym[infector_rows]] <- sym.child.inf
+      asymrate[case_data$age[infector_rows] == "adult" &
+                 !case_data$asym[infector_rows]] <- 1
 
-    prob_samples <- match(new_cases$contact,case_data$caseid)
-    case_data$infector[prob_samples] <- case_data$caseid[match(new_cases$caseid,
-                                                               case_data$caseid)]
-    case_data$exposure[prob_samples] <- day
-    case_data$status[prob_samples] <- "I"
-    case_data$onset[prob_samples] <- day + incfn(length(prob_samples))
-    case_data$recovery_time[prob_samples] <- case_data$onset[prob_samples] + 7
+      infected <- rbernoulli(nrow(new_cases),
+                             p = inf_prob(day = day - case_data$exposure[infector_rows],
+                                          inc_samp = case_data$onset[infector_rows],
+                                          contactrate = new_cases$rate,
+                                          theta = presymrate,
+                                          infasym = asymrate,
+                                          R = R))
 
-    #Isolation times for symtpomatic cases
-    if(isolation) {
-      sym_cases <- prob_samples[!case_data$asym[prob_samples]]
-      case_data$isolated_time[sym_cases] <- case_data$onset[sym_cases] +
-        delayfn(length(sym_cases))
-      case_data$release_time[sym_cases] <- case_data$isolated_time[sym_cases] + 14
+      #Each contact can only be infected once
+      new_cases <- new_cases[infected,] %>%
+        group_by(contact) %>%
+        sample_n(1)
 
     }
+
+
+
+
+
+
+    # Compile data for all new infections -------------------------------------
+
+
+    # Compile a data frame for all new cases, new_cases is the amount of people that each infector has infected
+
+    if(nrow(new_cases) > 0){
+
+      prob_samples <- match(new_cases$contact,case_data$caseid)
+      case_data$infector[prob_samples] <- case_data$caseid[match(new_cases$caseid,
+                                                                 case_data$caseid)]
+      case_data$exposure[prob_samples] <- day
+      case_data$status[prob_samples] <- "I"
+      case_data$onset[prob_samples] <- day + incfn(length(prob_samples))
+      case_data$recovery_time[prob_samples] <- case_data$onset[prob_samples] + 7
+
+      #Isolation times for symtpomatic cases
+      if(isolation) {
+        sym_cases <- prob_samples[!case_data$asym[prob_samples]]
+        case_data$isolated_time[sym_cases] <- case_data$onset[sym_cases] +
+          delayfn(length(sym_cases))
+        case_data$release_time[sym_cases] <- case_data$isolated_time[sym_cases] + 100
+
+      }
+
+    }
+
 
   }
 
@@ -330,7 +342,7 @@ outbreak_step <- function(day, case_data, net = haslemere,
 
 
 
-# Set quarantine times based on tracing -----------------------------------
+  # Set quarantine times based on tracing -----------------------------------
 
   if(isolation & tracing & length(traced_contacts) > 0) {
 
@@ -372,8 +384,8 @@ outbreak_step <- function(day, case_data, net = haslemere,
     }
 
     case_data$release_time <- ifelse(case_data$isolated_time < case_data$quarantine_time,
-                                     case_data$isolated_time + 14,
-                                     case_data$quarantine_time + 14)
+                                     case_data$isolated_time + 100,
+                                     case_data$quarantine_time + 100)
 
   }
 
@@ -456,7 +468,7 @@ outbreak_step <- function(day, case_data, net = haslemere,
                                        !case_data$quarantined[new_tests] &
                                        test_results]
     case_data$isolated_time[free_positive_tests] <- day
-    case_data$release_time[free_positive_tests] <- day+14
+    case_data$release_time[free_positive_tests] <- day+100
   }
 
 

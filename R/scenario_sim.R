@@ -41,9 +41,10 @@
 #' }
 #'
 
-scenario_sim <- function(n.sim = 1, net = haslemere, prop.ascertain, cap_max_days, R, presymrate,
-                         delay_shape, delay_scale, num.initial.cases, prop.asym, scenario,
-                         outside, sensitivity = "high", testing = "none", cap_max_tests = NULL) {
+scenario_sim <- function(n.sim = 1, net, df, prop.ascertain, cap_max_days, R, presymrate,
+                         delay_shape, delay_scale, num.initial.cases,asym.adult,
+                         asym.child,asym.adult.inf,sym.child.inf, asym.child.inf, scenario,
+                         outside, sensitivity = "high", testing = "none", output = "daily", cap_max_tests = NULL) {
 
 
   # Check input parameters --------------------------------------------------
@@ -52,7 +53,6 @@ scenario_sim <- function(n.sim = 1, net = haslemere, prop.ascertain, cap_max_day
   if(!testing %in% c("realistic","random", "none")) stop("testing needs to be 'realistic', 'random' or 'none'")
   if(floor(prop.ascertain) != 0) stop("prop.ascertain must between 0 and 1")
   if(floor(presymrate) != 0) stop("presymrate must between 0 and 1")
-  if(floor(prop.asym) != 0) stop("prop.asym must between 0 and 1")
   if(floor(outside) != 0) stop("outside must between 0 and 1")
 
 
@@ -93,13 +93,18 @@ scenario_sim <- function(n.sim = 1, net = haslemere, prop.ascertain, cap_max_day
   # Run n.sim number of model runs and put them all together in a big data.frame
   res <- purrr::map(.x = 1:n.sim, ~ outbreak_model(num.initial.cases = num.initial.cases,
                                                    net = net,
+                                                   df = df,
                                                    prop.ascertain = prop.ascertain,
                                                    cap_max_days = cap_max_days,
                                                    delay_shape = delay_shape,
                                                    delay_scale = delay_scale,
                                                    R = R,
                                                    presymrate = presymrate,
-                                                   prop.asym = prop.asym,
+                                                   asym.adult = asym.adult,
+                                                   asym.child = asym.child,
+                                                   asym.adult.inf = asym.adult.inf,
+                                                   sym.child.inf = sym.child.inf,
+                                                   asym.child.inf = asym.child.inf,
                                                    quarantine = quarantine,
                                                    secondary = secondary,
                                                    tracing = tracing,
@@ -107,11 +112,21 @@ scenario_sim <- function(n.sim = 1, net = haslemere, prop.ascertain, cap_max_day
                                                    outside = outside,
                                                    sensitivity = sensitivity,
                                                    testing = testing,
+                                                   output = output,
                                                    cap_max_tests = cap_max_tests))
 
 
   # bind output together and add simulation index
-  res <- dplyr::bind_rows(res) %>%
+  if(output == "weekly") {
+    res <- dplyr::bind_rows(res) %>%
     dplyr::mutate(sim = rep(1:n.sim, rep(floor(cap_max_days / 7) + 1, n.sim)))
+  } else {
+    if(output == "daily")
+    {
+      res <- dplyr::bind_rows(res) %>%
+        dplyr::mutate(sim = rep(1:n.sim, each = cap_max_days))
+    }
+  }
+
   return(res)
 }

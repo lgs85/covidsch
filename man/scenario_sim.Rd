@@ -6,7 +6,8 @@
 \usage{
 scenario_sim(
   n.sim = 1,
-  net = haslemere,
+  net,
+  df,
   prop.ascertain,
   cap_max_days,
   R,
@@ -14,11 +15,16 @@ scenario_sim(
   delay_shape,
   delay_scale,
   num.initial.cases,
-  prop.asym,
+  asym.adult,
+  asym.child,
+  asym.adult.inf,
+  sym.child.inf,
+  asym.child.inf,
   scenario,
   outside,
   sensitivity = "high",
   testing = "none",
+  output = "daily",
   cap_max_tests = NULL
 )
 }
@@ -41,8 +47,6 @@ scenario_sim(
 
 \item{num.initial.cases}{Initial number of cases in each initial cluster (must be 0 <= x <= 1)}
 
-\item{prop.asym}{proportion of asymptomatic cases (must be 0 <= x <= 1)}
-
 \item{scenario}{character - must be either ("nothing","isolation","primary_quarantine", or "secondary_quarantine")}
 
 \item{outside}{infection rate from outside the network (must be 0 <= x <= 1)}
@@ -52,6 +56,8 @@ scenario_sim(
 \item{testing}{character - must be "realistic", "random" or "none"}
 
 \item{cap_max_tests}{integer - max number of daily tests. Only use if testing != "none"}
+
+\item{prop.asym}{proportion of asymptomatic cases (must be 0 <= x <= 1)}
 }
 \value{
 data.frame of weekly cases, isolations, quarantines and tests for each simulation

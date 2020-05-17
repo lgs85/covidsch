@@ -45,8 +45,6 @@ plot_network(
 
 \item{delay_scale}{numeric scale parameter of delay distribution}
 
-\item{prop.asym}{proportion of asymptomtaic cases (must be 0<=x<=1)}
-
 \item{quarantine}{logical whether quarantine is in effect, if TRUE then traced contacts are isolated before symptom onset}
 
 \item{isolation}{logical whether isolation is in effect}
